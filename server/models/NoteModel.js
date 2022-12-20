@@ -2,12 +2,11 @@ import mongoose from 'mongoose';
 
 const NoteSchema = new mongoose.Schema(
   {
-    userRef: {
-      type: mongoose.Schema.Types.ObjectId,
+    user: {
+      type: String,
       required: true,
-      ref: 'User',
     },
-    note: {
+    text: {
       type: String,
       required: true,
     },

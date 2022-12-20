@@ -2,15 +2,16 @@ import express from 'express';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 
 import authRoute from './routes/authRoute.js';
-import noteRoute from './routes/noteRoute.js';
 
 const app = express();
 dotenv.config();
 
 //middlewares
 app.use(cors());
+app.use(cookieParser());
 app.use(express.json());
 
 //connect to MongoDB
@@ -23,9 +24,8 @@ const connectionToDB = async () => {
   }
 };
 
-//routers
-app.use('/api/auth', authRoute);
-app.use('/api/note', noteRoute);
+//routes
+app.use('/user', authRoute);
 
 const port = process.env.PORT;
 
