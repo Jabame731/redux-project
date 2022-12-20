@@ -14,7 +14,7 @@ const router = express.Router();
 
 router.post('/:userId', verifyUser, createNote);
 router.put('/:id', verifyUser, updateNote);
-router.delete('/:id', verifyUser, deleteNote);
+router.delete('/:userId/:id', verifyUser, deleteNote);
 router.get('/all/:id', verifyUser, getAllNotes);
 
 export default router;

@@ -40,13 +40,15 @@ export const updateNote = async (req, res, next) => {
 export const deleteNote = async (req, res, next) => {
   const noteId = req.params.id;
 
+  const userId = req.params.userId;
+
   try {
     await Note.findByIdAndDelete(req.params.id);
 
     try {
-      await User.findByIdAndDelete(noteId, {
+      await User.findByIdAndUpdate(userId, {
         $pull: {
-          note: req.params.id,
+          note: noteId,
         },
       });
     } catch (err) {
@@ -70,7 +72,6 @@ export const getAllNotes = async (req, res, next) => {
     const name = [];
 
     const getName = await Note.findById(idNotes);
-    const test = getName.note;
 
     // const getName = await Note.findById(idNotes);
     await Promise.all(
