@@ -5,6 +5,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 
 import authRoute from './routes/authRoute.js';
+import noteRoute from './routes/noteRoute.js';
 
 const app = express();
 dotenv.config();
@@ -26,6 +27,7 @@ const connectionToDB = async () => {
 
 //routes
 app.use('/user', authRoute);
+app.use('/note', noteRoute);
 
 const port = process.env.PORT;
 

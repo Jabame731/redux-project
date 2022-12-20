@@ -2,11 +2,7 @@ import mongoose from 'mongoose';
 
 const NoteSchema = new mongoose.Schema(
   {
-    user: {
-      type: String,
-      required: true,
-    },
-    text: {
+    note: {
       type: String,
       required: true,
     },

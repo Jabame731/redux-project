@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 
-import { createError } from './error';
+import { createError } from './error.js';
 
 //middleware
 export const verifyToken = (req, res, next) => {
