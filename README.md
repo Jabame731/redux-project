@@ -1,24 +1,42 @@
-hey there
+<h1>hey there 👋</h1> 
 
-first go to directory ./server
-then in your terminal please type: 
-npm install or npm install --legacy-per-deps
+<p>Please follow these steps to run the project</p> 
 
-second add a .env file to the directory
-</br>
+
+  first go to directory ./server
+  <br />
+  then in your terminal please type: 
+  <br />
+ npm install or npm install --legacy-per-deps
+   <br />
+
+<br />
+
+
+
+ second add a .env file to the directory
+ <br />
 example content:
-PORT = 8800
-MONGO_URL = YOUR_MONGO_URL
-JWT_SECRET = 'SECRET'
+<br />
+ PORT = 8800
+ <br />
+ MONGO_URL = YOUR_MONGO_URL
+ <br />
+  JWT_SECRET = 'SECRET'
+<br />
+
+<br />
 
 
-
-
-</br>
-second got to directory ./client
-then in your terminal please type: 
+  second go to directory ./client
+  <br />
+  then in your terminal please type: 
+  <br />
 npm install or npm install --legacy-per-deps
+<br />
 
+
+<br />
 
 your good to go --- goodluck
 
