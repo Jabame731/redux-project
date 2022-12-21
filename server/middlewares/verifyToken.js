@@ -1,30 +1,32 @@
 import jwt from 'jsonwebtoken';
+import asyncHandler from 'express-async-handler';
+import User from '../models/UserModel.js';
 
-import { createError } from './error.js';
+export const verifyUser = asyncHandler(async (req, res, next) => {
+  let token;
 
-//middleware
-export const verifyToken = (req, res, next) => {
-  const token = req.cookies.access_token;
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith('Bearer')
+  ) {
+    try {
+      token = req.headers.authorization.split(' ')[1];
 
-  if (!token) {
-    return next(createError(404, 'Sorry Not Authenticated'));
+      // Verify token
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+      req.user = await User.findById(decoded.id).select('-password');
+
+      next();
+    } catch (error) {
+      console.log(error);
+      res.status(401);
+      throw new Error('Not authorized');
+    }
   }
 
-  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-    if (err) return next(createError(403, 'Token is not Valid'));
-
-    req.user = user;
-    next();
-  });
-};
-
-//verifyUser
-export const verifyUser = (req, res, next) => {
-  verifyToken(req, res, () => {
-    if (req.user.id === req.params.id) {
-      next();
-    } else {
-      return next(createError(403, 'Not Authorized'));
-    }
-  });
-};
+  if (!token) {
+    res.status(401);
+    throw new Error('Not authorized, no token');
+  }
+});
