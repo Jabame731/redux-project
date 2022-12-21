@@ -1,73 +1,78 @@
 import User from '../models/UserModel.js';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
+import asyncHandler from 'express-async-handler';
 
-import { createError } from '../middlewares/error.js';
+export const registerUser = asyncHandler(async (req, res) => {
+  const { name, email, password } = req.body;
 
-//register user
-export const register = async (req, res, next) => {
-  try {
-    const { name, email, password } = req.body;
+  //
+  const capitalizeFirstLetter = (str) => {
+    const capitalized = str.charAt(0).toUpperCase() + str.slice(1);
 
-    if (!name || !email || !password) {
-      next(createError(400, 'Please add all fields'));
-    }
+    return capitalized;
+  };
 
-    const userExist = await User.findOne({ email });
+  const makeFirstLetterCapitalized = capitalizeFirstLetter(name);
 
-    if (userExist) {
-      next(createError(400, 'User already exist'));
-    }
-
-    const salt = bcrypt.genSaltSync(10);
-    const hash = bcrypt.hashSync(req.body.password, salt);
-
-    const newUser = new User({
-      ...req.body,
-      password: hash,
-    });
-
-    await newUser.save();
-    res.status(200).json({
-      _id: newUser.id,
-      name: newUser.name,
-      email: newUser.email,
-    });
-  } catch (err) {
-    next(err);
+  if (!name || !email || !password) {
+    res.status(400);
+    throw new Error('Please add all fields');
   }
-};
 
-//login user
-export const login = async (req, res, next) => {
-  try {
-    const user = await User.findOne({ email: req.body.email });
-    if (!user) return next(createError(404, 'User not Found'));
+  const userExists = await User.findOne({ email });
 
-    const checkPassword = await bcrypt.compare(
-      req.body.password,
-      user.password
-    );
-
-    if (!checkPassword)
-      return next(createError(400, 'Wrong password or username'));
-
-    const token = jwt.sign(
-      {
-        id: user._id,
-      },
-      process.env.JWT_SECRET
-    );
-
-    const { password, ...otherDetails } = user._doc;
-
-    res
-      .cookie('access_token', token, {
-        httpOnly: true,
-      })
-      .status(200)
-      .json({ details: { ...otherDetails } });
-  } catch (err) {
-    next(err);
+  if (userExists) {
+    res.status(400);
+    throw new Error('User already exists');
   }
+
+  const salt = await bcrypt.genSalt(10);
+  const hashedPassword = await bcrypt.hash(password, salt);
+
+  const user = await User.create({
+    name: makeFirstLetterCapitalized,
+    email,
+    password: hashedPassword,
+  });
+
+  if (user) {
+    res.status(201).json({
+      _id: user.id,
+      name: user.name,
+      email: user.email,
+      token: generateToken(user._id),
+    });
+  } else {
+    res.status(400);
+    throw new Error('Invalid user data');
+  }
+});
+
+export const loginUser = asyncHandler(async (req, res) => {
+  const { email, password } = req.body;
+
+  const user = await User.findOne({ email });
+
+  if (user && (await bcrypt.compare(password, user.password))) {
+    res.json({
+      _id: user.id,
+      name: user.name,
+      email: user.email,
+      token: generateToken(user._id),
+    });
+  } else {
+    res.status(400);
+    throw new Error('Invalid credentials');
+  }
+});
+
+export const getProfile = asyncHandler(async (req, res) => {
+  res.status(200).json(req.user);
+});
+
+const generateToken = (id) => {
+  return jwt.sign({ id }, process.env.JWT_SECRET, {
+    expiresIn: '6hr',
+  });
 };
