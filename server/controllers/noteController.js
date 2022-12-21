@@ -1,104 +1,76 @@
 import Note from '../models/NoteModel.js';
 import User from '../models/UserModel.js';
 
-//create note
-export const createNote = async (req, res, next) => {
-  const userId = req.params.userId;
-  const note = new Note(req.body);
+import asyncHandler from 'express-async-handler';
 
-  try {
-    const newNote = await note.save();
+//get note
+export const getNotes = asyncHandler(async (req, res) => {
+  const notes = await Note.find({ user: req.user.id });
 
-    try {
-      await User.findByIdAndUpdate(userId, {
-        $push: { note: newNote._id },
-      });
-    } catch (err) {
-      next(err);
-    }
-    res.status(200).json(newNote);
-  } catch (err) {
-    next(err);
+  res.status(200).json(notes);
+});
+
+//create
+export const createNote = asyncHandler(async (req, res) => {
+  if (!req.body.text) {
+    res.status(400);
+    throw new Error('Please add a text field');
   }
-};
 
-//update
-export const updateNote = async (req, res, next) => {
-  try {
-    const updatedNote = await Note.findByIdAndUpdate(
-      req.params.id,
-      { $set: req.body },
-      { new: true }
-    );
-    res.status(200).json(updatedNote);
-  } catch (err) {
-    next(err);
-  }
-};
+  const note = await Note.create({
+    text: req.body.text,
+    user: req.user.id,
+  });
+
+  res.status(200).json(note);
+});
 
 //delete note
-export const deleteNote = async (req, res, next) => {
-  const noteId = req.params.id;
+export const deleteNote = asyncHandler(async (req, res) => {
+  const note = await Note.findById(req.params.id);
 
-  const userId = req.params.userId;
-
-  try {
-    await Note.findByIdAndDelete(req.params.id);
-
-    try {
-      await User.findByIdAndUpdate(userId, {
-        $pull: {
-          note: noteId,
-        },
-      });
-    } catch (err) {
-      next(err);
-    }
-    res.status(200).json('review has been deleted');
-  } catch (err) {
-    next(err);
+  if (!note) {
+    res.status(400);
+    throw new Error('Note not found');
   }
-};
 
-//get all notes by user Id
-export const getAllNotes = async (req, res, next) => {
-  const userId = req.params.id;
-
-  try {
-    const user = await User.findById(userId);
-
-    const idNotes = user.note;
-
-    const name = [];
-
-    const getName = await Note.findById(idNotes);
-
-    // const getName = await Note.findById(idNotes);
-    await Promise.all(
-      idNotes.map(async (idNote) => {
-        const getName = await Note.findById(idNote);
-
-        const getNameNote = getName.note;
-
-        name.push(getNameNote);
-      })
-    );
-
-    res.status(200).json(name);
-  } catch (err) {
-    next(err);
+  if (!req.user) {
+    res.status(401);
+    throw new Error('User not found');
   }
-};
 
-//get note name by id
-export const getNoteByIdName = async (req, res, next) => {
-  try {
-    const getNote = await Note.find({})
-      .populate('user', '-password')
-      .populate('note', '-password');
-
-    res.send(getNote);
-  } catch (err) {
-    next(err);
+  if (note.user.toString() !== req.user.id) {
+    res.status(401);
+    throw new Error('User not authorized');
   }
-};
+
+  await note.remove();
+
+  res.status(200).json({ id: req.params.id });
+});
+
+//update note
+export const updateNote = asyncHandler(async (req, res) => {
+  const note = await Note.findById(req.params.id);
+
+  if (!note) {
+    res.status(400);
+    throw new Error('Note not found');
+  }
+
+  if (!req.user) {
+    res.status(401);
+    throw new Error('User not found');
+  }
+
+  if (note.user.toString() !== req.user.id) {
+    res.status(401);
+    throw new Error('User not authorized');
+  }
+
+  const updatedNote = await Note.findByIdAndUpdate(req.params.id, req.body, {
+    new: true,
+  });
+
+  res.status(200).json(updatedNote);
+});
