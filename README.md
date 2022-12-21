@@ -25,6 +25,11 @@ example content:
   JWT_SECRET = 'SECRET'
 <br />
 
+if done please type this in your server termina to run:
+<br />
+nodemon index.js
+<br />
+
 <br />
 
 
@@ -33,6 +38,11 @@ example content:
   then in your terminal please type: 
   <br />
 npm install or npm install --legacy-per-deps
+<br />
+
+if done please type this on your client terminal:
+<br />
+npm start
 <br />
 
 
