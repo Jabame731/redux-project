@@ -25,7 +25,7 @@ example content:
   JWT_SECRET = 'SECRET'
 <br />
 
-if done please type this in your server termina to run:
+if done please type this in your server terminal to run:
 <br />
 nodemon index.js
 <br />
